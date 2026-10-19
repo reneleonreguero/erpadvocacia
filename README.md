@@ -6,6 +6,8 @@ com duplo clique.
 
 ![Tela Hoje](preview.png)
 
+**Demonstração online:** https://reneleonreguero.github.io/erpadvocacia/
+
 ## Que dores o protótipo resolve
 
 | Dor do dia a dia | Como aparece no protótipo |
