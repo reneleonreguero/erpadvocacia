@@ -1,0 +1,1658 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>ERP Jurídico — Protótipo</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23111827'/><text x='16' y='23' font-size='19' text-anchor='middle' fill='white' font-family='sans-serif'>§</text></svg>">
+<style>
+:root{
+  --bg:#F7F7F5;
+  --surface:#FFFFFF;
+  --ink:#111827;
+  --ink-2:#374151;
+  --muted:#6B7280;
+  --line:#E5E7EB;
+  --line-soft:#F1F1EF;
+  --accent:#1D4ED8;
+  --accent-dark:#1A45C0;
+  --danger:#B42318;
+  --warn:#B54708;
+  --ok:#067647;
+  --hover:#FAFAF9;
+  --danger-bg:#FEF3F2;
+  --danger-line:#FADBD8;
+  --warn-bg:#FFFAEB;
+  --ok-bg:#ECFDF3;
+  --info-bg:#EFF4FF;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+button{font:inherit;color:inherit;cursor:pointer}
+input,select,textarea{font:inherit;color:inherit}
+a{color:var(--accent);text-decoration:none}
+
+/* ---------- estrutura ---------- */
+.app{display:flex;min-height:100vh}
+.sidebar{
+  width:220px;flex:0 0 220px;background:var(--surface);
+  border-right:1px solid var(--line);display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;
+}
+.brand{display:flex;align-items:center;gap:10px;padding:15px 16px;border-bottom:1px solid var(--line)}
+.brand-mark{width:30px;height:30px;flex:0 0 30px;border-radius:6px;background:var(--ink);color:#fff;display:grid;place-items:center;font-size:15px;font-weight:600}
+.brand strong{display:block;font-size:13.5px;font-weight:600;letter-spacing:-.01em}
+.brand small{display:block;font-size:11.5px;color:var(--muted)}
+.nav{padding:10px 8px;display:flex;flex-direction:column;gap:1px;flex:1}
+.nav-item{
+  display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;
+  border:0;background:none;border-radius:6px;font-size:13.5px;
+  color:var(--ink-2);text-align:left;
+}
+.nav-item:hover{background:var(--hover)}
+.nav-item.active{background:#F0F1EF;color:var(--ink);font-weight:600}
+.nav-item svg{width:16px;height:16px;flex:0 0 16px;color:var(--muted)}
+.nav-item.active svg{color:var(--accent)}
+.sidebar-foot{border-top:1px solid var(--line);padding:8px}
+.user{display:flex;align-items:center;gap:10px;padding:10px 8px 4px}
+.user strong{display:block;font-size:12.5px}
+.user small{display:block;font-size:11px;color:var(--muted)}
+.proto-note{padding:8px 10px 2px;font-size:10.5px;color:#9CA3AF;letter-spacing:.02em}
+.avatar{width:30px;height:30px;flex:0 0 30px;border-radius:50%;background:#EAECEA;color:var(--ink-2);display:grid;place-items:center;font-size:11.5px;font-weight:600}
+.avatar.sm{width:26px;height:26px;flex-basis:26px;font-size:11px}
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{
+  height:56px;flex:0 0 56px;display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:0 20px;background:var(--surface);border-bottom:1px solid var(--line);
+  position:sticky;top:0;z-index:20;
+}
+.search{display:flex;align-items:center;gap:8px;height:34px;padding:0 10px;width:min(420px,100%);border:1px solid var(--line);border-radius:6px;background:#FAFAF9}
+.search svg{width:15px;height:15px;flex:0 0 15px;color:var(--muted)}
+.search input{border:0;outline:0;background:transparent;flex:1;min-width:0;font-size:13px}
+.search kbd{font:11px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--muted);border:1px solid var(--line);border-radius:4px;background:#fff;padding:1px 5px}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.tenant{font-size:12.5px;color:var(--muted);white-space:nowrap}
+#content{width:100%;max-width:1280px;margin:0 auto;padding:22px 24px 56px}
+
+/* ---------- cabeçalho de tela ---------- */
+.page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}
+.page-head h1{font-size:20px;font-weight:600;letter-spacing:-.02em;margin:0 0 2px}
+.page-head p{margin:0;font-size:13px;color:var(--muted)}
+.actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+/* ---------- botões ---------- */
+.btn{
+  height:32px;padding:0 12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  border:1px solid var(--line);border-radius:6px;background:var(--surface);
+  font-size:13px;font-weight:500;white-space:nowrap;
+}
+.btn:hover{background:var(--hover)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--accent-dark)}
+.btn.sm{height:26px;padding:0 8px;font-size:12px}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--ink-2)}
+.btn.ghost:hover{background:#F0F1EF}
+.link{border:0;background:none;padding:0;font-size:12.5px;color:var(--accent)}
+.link:hover{text-decoration:underline}
+
+/* ---------- cartões ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:6px;overflow-x:auto}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 16px;border-bottom:1px solid var(--line)}
+.card-head h2{font-size:11.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2);margin:0}
+.card-head .sub{font-size:12px;color:var(--muted)}
+.card-body{padding:16px}
+
+/* ---------- indicadores ---------- */
+.grid-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.stat{padding:12px 14px}
+.stat .label{font-size:11px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.stat .value{font-size:22px;font-weight:600;letter-spacing:-.02em;margin-top:2px;font-variant-numeric:tabular-nums}
+.stat .value.money{font-size:19px}
+.stat .hint{font-size:12px;color:var(--muted);margin-top:1px}
+.stat.alert .value,.stat.alert .hint{color:var(--danger)}
+
+/* ---------- colunas ---------- */
+.cols{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px;align-items:start}
+.stack{display:flex;flex-direction:column;gap:16px;min-width:0}
+
+/* ---------- tabelas ---------- */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{
+  padding:8px 12px;text-align:left;font-size:11px;font-weight:500;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line);white-space:nowrap;
+}
+td{padding:10px 12px;border-bottom:1px solid var(--line-soft);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+tbody tr.row-click{cursor:pointer}
+tbody tr.row-click:hover td{background:var(--hover)}
+.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px}
+.right{text-align:right}
+.muted{color:var(--muted)}
+.small{font-size:12px}
+.strong{font-weight:600}
+.text-danger{color:var(--danger)}
+.text-ok{color:var(--ok)}
+.nowrap{white-space:nowrap}
+
+/* ---------- etiquetas ---------- */
+.badge{
+  display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:999px;
+  font-size:11px;font-weight:500;white-space:nowrap;border:1px solid transparent;
+}
+.badge.ok{background:var(--ok-bg);color:var(--ok)}
+.badge.warn{background:var(--warn-bg);color:var(--warn)}
+.badge.danger{background:var(--danger-bg);color:var(--danger)}
+.badge.info{background:var(--info-bg);color:var(--accent)}
+.badge.neutral{background:#F3F4F6;color:#4B5563}
+
+/* ---------- prazos / publicações ---------- */
+.deadline{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line-soft)}
+.deadline:last-child{border-bottom:0}
+.deadline-main{flex:1;min-width:0}
+.deadline-title{font-size:13px;font-weight:500}
+.deadline .meta{font-size:12px;color:var(--muted);margin-top:2px}
+.deadline-actions{display:flex;gap:6px;flex-shrink:0}
+.pub{padding:12px 16px;border-bottom:1px solid var(--line-soft)}
+.pub:last-child{border-bottom:0}
+.pub-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px}
+.pub-title{font-size:12.5px;font-weight:500}
+.pub-text{font-size:12.5px;color:var(--muted);margin:2px 0 8px}
+
+/* ---------- resumos ---------- */
+.mini-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 16px;border-bottom:1px solid var(--line-soft);font-size:12.5px}
+.mini-row:last-child{border-bottom:0}
+.total-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 16px;border-top:1px solid var(--line);font-size:13px;font-weight:600}
+.alert-strip{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin-bottom:16px;padding:9px 14px;background:var(--danger-bg);
+  border:1px solid var(--danger-line);border-radius:6px;color:#7A271A;font-size:13px;
+}
+
+/* ---------- filtros ---------- */
+.filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid var(--line);background:var(--surface);border-radius:6px 6px 0 0}
+.filters select{height:30px;padding:0 8px;border:1px solid var(--line);border-radius:6px;background:#fff;font-size:12.5px;outline:none}
+.filters select:focus{border-color:var(--accent)}
+.filters .spacer{flex:1}
+.chip{padding:5px 10px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:12px}
+.chip:hover{background:var(--hover)}
+.chip.active{background:var(--ink);border-color:var(--ink);color:#fff}
+.chip-x{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:12px;color:var(--ink-2)}
+
+/* ---------- abas ---------- */
+.tabs{display:flex;gap:2px;padding:0 12px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{padding:10px 9px;margin-bottom:-1px;border:0;border-bottom:2px solid transparent;background:none;font-size:13px;color:var(--muted);white-space:nowrap}
+.tab:hover{color:var(--ink)}
+.tab.active{color:var(--ink);font-weight:600;border-bottom-color:var(--ink)}
+.tab-body{min-height:80px}
+.pane-pad{padding:16px}
+
+/* ---------- linha do tempo ---------- */
+.timeline{display:flex;flex-direction:column;padding:18px 16px 8px}
+.timeline-item{position:relative;display:flex;gap:12px;padding-bottom:20px}
+.timeline-item:last-child{padding-bottom:0}
+.timeline-item:not(:last-child)::before{content:"";position:absolute;left:5px;top:14px;bottom:2px;width:1px;background:var(--line)}
+.timeline-dot{position:relative;z-index:1;width:11px;height:11px;flex:0 0 11px;margin-top:4px;border:2px solid var(--line);border-radius:50%;background:#fff}
+.timeline-dot.active{border-color:var(--accent);background:var(--accent)}
+.timeline-text{font-size:13px}
+.timeline-date{font-size:11.5px;color:var(--muted);margin-top:1px}
+
+/* ---------- agenda semanal ---------- */
+.week-wrap{overflow-x:auto}
+.week{display:grid;grid-template-columns:repeat(5,minmax(150px,1fr));min-width:750px}
+.week-day{border-right:1px solid var(--line);min-height:300px}
+.week-day:last-child{border-right:0}
+.week-day-head{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:8px 10px;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted)}
+.week-day.today .week-day-head{background:#F5F7FF;color:var(--accent);font-weight:600}
+.week-body{display:flex;flex-direction:column;gap:6px;padding:8px;min-height:260px}
+.prazo-block{
+  display:flex;flex-direction:column;gap:1px;width:100%;padding:7px 9px;
+  border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:4px;
+  background:#fff;text-align:left;font-size:11.5px;
+}
+.prazo-block:hover{background:var(--hover)}
+.prazo-block.fatal{border-left-color:var(--danger)}
+.prazo-block.done{opacity:.45;text-decoration:line-through}
+.pb-time{font-size:10.5px;letter-spacing:.03em;text-transform:uppercase;color:var(--muted)}
+.pb-title{font-size:12.5px;font-weight:500}
+.pb-meta{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.week-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line)}
+.week-toolbar .mid{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
+.week-toolbar .mid strong{color:var(--ink);font-weight:500}
+
+/* ---------- detalhe do processo ---------- */
+.proc-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:12px;padding:16px 18px;background:var(--surface);border:1px solid var(--line);border-radius:6px}
+.proc-head h1{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:16px;font-weight:600;letter-spacing:-.01em;margin:4px 0 3px}
+.proc-sub{font-size:12.5px;color:var(--muted)}
+.proc-summary{display:grid;grid-template-columns:1fr 1fr;margin-bottom:12px;background:var(--surface);border:1px solid var(--line);border-radius:6px}
+.proc-summary .cell{padding:12px 16px;border-right:1px solid var(--line);font-size:13px;min-width:0}
+.proc-summary .cell:last-child{border-right:0}
+.proc-summary .label{font-size:11px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.proc-summary .val{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.proc-side{display:flex;flex-direction:column;align-items:flex-end;gap:10px;flex-shrink:0}
+.dl{display:grid;grid-template-columns:170px minmax(0,1fr);gap:10px 16px;font-size:13px}
+.dl dt{color:var(--muted)}
+.dl dd{margin:0}
+
+/* ---------- modelos ---------- */
+.model-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.model{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:14px 16px}
+.model h3{font-size:13.5px;font-weight:600;margin:0}
+.model p{margin:0 0 4px;font-size:12.5px;color:var(--muted)}
+
+/* ---------- vazio ---------- */
+.empty{padding:28px 16px;text-align:center;font-size:13px;color:var(--muted)}
+
+/* ---------- modal ---------- */
+.overlay{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:64px 16px;background:rgba(17,24,39,.45);overflow:auto}
+.modal{width:100%;max-width:520px;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+.modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 18px;border-bottom:1px solid var(--line)}
+.modal-head strong{font-size:14px}
+.modal-body{display:grid;gap:12px;padding:18px}
+.modal-foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid var(--line);background:#FAFAF9;border-radius:0 0 8px 8px}
+.field{display:grid;gap:4px;min-width:0}
+.field label{font-size:12px;font-weight:500;color:var(--ink-2)}
+.field input,.field select,.field textarea{width:100%;height:34px;padding:0 10px;border:1px solid var(--line);border-radius:6px;background:#fff;font-size:13px;outline:none}
+.field textarea{height:auto;min-height:64px;padding:8px 10px;resize:vertical}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(29,78,216,.12)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.note{margin:0;font-size:12px;color:var(--muted)}
+
+/* ---------- aviso ---------- */
+#toast-root{position:fixed;right:20px;bottom:20px;z-index:60;display:flex;flex-direction:column;gap:8px}
+.toast{padding:9px 14px;border-radius:6px;background:var(--ink);color:#fff;font-size:13px;animation:toast-in .18s ease-out}
+@keyframes toast-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* ---------- responsivo ---------- */
+@media (max-width:1080px){
+  .grid-stats{grid-template-columns:repeat(2,1fr)}
+  .cols{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:820px){
+  .sidebar{width:64px;flex:0 0 64px}
+  .brand{justify-content:center;padding:14px 0}
+  .brand>div,.nav-item span,.user>div{display:none}
+  .nav{padding:8px 6px}
+  .nav-item{justify-content:center;padding:9px}
+  .sidebar-foot .nav-item{justify-content:center}
+  .proto-note{display:none}
+  .tenant{display:none}
+  #content{padding:18px 14px 48px}
+  .page-head{flex-direction:column}
+  .model-grid,.form-row{grid-template-columns:1fr}
+  .proc-head{flex-direction:column}
+  .proc-side{align-items:flex-start}
+}
+@media (max-width:560px){
+  .grid-stats{grid-template-columns:1fr}
+  .topbar{padding:0 14px}
+  .search kbd{display:none}
+  .deadline{flex-wrap:wrap}
+  .deadline-main{flex:1 1 100%}
+  .deadline-actions{margin-left:auto}
+  .proc-summary{grid-template-columns:1fr}
+  .proc-summary .cell{border-right:0;border-bottom:1px solid var(--line)}
+  .proc-summary .cell:last-child{border-bottom:0}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-mark">§</span>
+      <div><strong>ERP Jurídico</strong><small>Almeida &amp; Renan</small></div>
+    </div>
+    <nav class="nav" aria-label="Navegação principal">
+      <button class="nav-item" data-view="hoje">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        <span>Hoje</span>
+      </button>
+      <button class="nav-item" data-view="processos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        <span>Processos</span>
+      </button>
+      <button class="nav-item" data-view="prazos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
+        <span>Prazos</span>
+      </button>
+      <button class="nav-item" data-view="clientes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3 2.7-5 6-5s6 2 6 5"/><path d="M16 4.6a3 3 0 0 1 0 5.8M18 20c0-2.1-.8-3.7-2-4.5"/></svg>
+        <span>Clientes</span>
+      </button>
+      <button class="nav-item" data-view="documentos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+        <span>Documentos</span>
+      </button>
+      <button class="nav-item" data-view="financeiro">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M3 10h18M16 15h2"/></svg>
+        <span>Financeiro</span>
+      </button>
+    </nav>
+    <div class="sidebar-foot">
+      <button class="nav-item" data-action="toast" data-msg="Configurações não fazem parte deste protótipo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="8" cy="18" r="2"/></svg>
+        <span>Configurações</span>
+      </button>
+      <div class="user">
+        <div class="avatar">RF</div>
+        <div><strong>Renan Freitas</strong><small>Sócio</small></div>
+      </div>
+      <div class="proto-note">Protótipo · dados fictícios</div>
+    </div>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="global-search" type="search" placeholder="Buscar processo, cliente ou documento…" autocomplete="off" aria-label="Busca global">
+        <kbd>Ctrl K</kbd>
+      </div>
+      <div class="topbar-right">
+        <span class="tenant">Escritório Almeida &amp; Renan</span>
+        <div class="avatar sm">RF</div>
+      </div>
+    </header>
+    <main id="content"></main>
+  </div>
+</div>
+<div id="modal-root"></div>
+<div id="toast-root" aria-live="polite"></div>
+<script>
+'use strict';
+
+/* ============================================================
+   Protótipo estático — dados fictícios, sem backend.
+   Todas as datas são calculadas a partir de hoje.
+   ============================================================ */
+
+/* ---------- utilidades ---------- */
+function startOfDay(date){ const x = new Date(date); x.setHours(0,0,0,0); return x; }
+const HOJE = startOfDay(new Date());
+
+function addDays(date, n){ const x = new Date(date); x.setDate(x.getDate() + n); x.setHours(0,0,0,0); return x; }
+const d = n => addDays(HOJE, n);
+
+const iso = date => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+const fmt = date => `${String(date.getDate()).padStart(2,'0')}/${String(date.getMonth()+1).padStart(2,'0')}`;
+function fmtLong(date){
+  const s = date.toLocaleDateString('pt-BR', { weekday:'long', day:'numeric', month:'long' });
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+const diffDays = (a,b) => Math.round((startOfDay(a) - startOfDay(b)) / 86400000);
+const sameDay = (a,b) => diffDays(a,b) === 0;
+const money = v => v.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
+function esc(v){
+  return String(v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function plural(n, s, p){ return n === 1 ? s : p; }
+function mondayOf(date){
+  const x = startOfDay(date);
+  const dow = (x.getDay() + 6) % 7;
+  return addDays(x, -dow);
+}
+function minutosTexto(min){
+  return Math.floor(min/60) + 'h' + (min % 60 ? String(min % 60).padStart(2,'0') : '');
+}
+
+/* ---------- clientes ---------- */
+const clientes = [
+  { id:'c1', nome:'Maria Souza', tipo:'PF', responsavel:'Dr. Renan', contato:'(11) 98877-1122', ultimoContato:d(-3) },
+  { id:'c2', nome:'Construtora Alfa Ltda', tipo:'PJ', responsavel:'Dra. Ana', contato:'(11) 3344-5566', ultimoContato:d(-1) },
+  { id:'c3', nome:'Condomínio Ipê', tipo:'PJ', responsavel:'Dra. Ana', contato:'(11) 3222-8899', ultimoContato:d(-8) },
+  { id:'c4', nome:'João Pereira', tipo:'PF', responsavel:'Dr. Renan', contato:'(11) 97766-3344', ultimoContato:d(-15) },
+  { id:'c5', nome:'Transportes Vega ME', tipo:'PJ', responsavel:'Dr. Renan', contato:'(11) 3555-1010', ultimoContato:d(-5) }
+];
+
+/* ---------- processos ---------- */
+const processos = [
+  {
+    id:'p1', numero:'0001234-56.2024.8.26.0100', clienteId:'c1', parte:'Banco X S/A',
+    vara:'3ª Vara Cível', comarca:'São Paulo/SP', responsavel:'Dr. Renan', status:'Ativo', distribuido:d(-420),
+    andamentos:[
+      { data:d(0),  texto:'Despacho: intimação para apresentar contestação.' },
+      { data:d(-7), texto:'Juntada de procuração e substabelecimento.' },
+      { data:d(-20), texto:'Distribuído por dependência.' }
+    ],
+    docs:[
+      { nome:'Procuração — Maria Souza.pdf', tipo:'Procuração', data:d(-20), tamanho:'240 KB' },
+      { nome:'Petição inicial.pdf', tipo:'Peça', data:d(-20), tamanho:'1,2 MB' },
+      { nome:'Extrato bancário.pdf', tipo:'Prova', data:d(-35), tamanho:'890 KB' }
+    ]
+  },
+  {
+    id:'p2', numero:'0009876-12.2025.8.26.0100', clienteId:'c2', parte:'Condomínio Ipê',
+    vara:'1ª Vara Empresarial', comarca:'São Paulo/SP', responsavel:'Dra. Ana', status:'Ativo', distribuido:d(-160),
+    andamentos:[
+      { data:d(0),  texto:'Despacho: intimação para apresentar réplica.' },
+      { data:d(-1), texto:'Juntada de petição e documentos.' },
+      { data:d(-34), texto:'Contestação apresentada pela parte contrária.' }
+    ],
+    docs:[
+      { nome:'Contrato social — Alfa.pdf', tipo:'Documento', data:d(-150), tamanho:'640 KB' },
+      { nome:'Contestação — Condomínio Ipê.pdf', tipo:'Peça', data:d(-34), tamanho:'980 KB' }
+    ]
+  },
+  {
+    id:'p3', numero:'1002345-67.2025.8.26.0100', clienteId:'c4', parte:'INSS',
+    vara:'2ª Vara Federal', comarca:'São Paulo/SP', responsavel:'Dr. Renan', status:'Ativo', distribuido:d(-180),
+    andamentos:[
+      { data:d(-1),  texto:'Conclusos para decisão.' },
+      { data:d(-30), texto:'Audiência realizada. Prazo para recurso aberto.' }
+    ],
+    docs:[
+      { nome:'RG e CPF — João Pereira.pdf', tipo:'Documento', data:d(-180), tamanho:'310 KB' }
+    ]
+  },
+  {
+    id:'p4', numero:'0005566-33.2024.8.26.0100', clienteId:'c5', parte:'Município de São Paulo',
+    vara:'4ª Vara da Fazenda Pública', comarca:'São Paulo/SP', responsavel:'Dr. Renan', status:'Suspenso', distribuido:d(-300),
+    andamentos:[
+      { data:d(-9), texto:'Laudo pericial juntado aos autos.' }
+    ],
+    docs:[
+      { nome:'Laudo pericial.pdf', tipo:'Prova', data:d(-9), tamanho:'2,4 MB' }
+    ]
+  },
+  {
+    id:'p5', numero:'0007788-44.2023.8.26.0100', clienteId:'c1', parte:'Plano de Saúde Y',
+    vara:'5ª Vara Cível', comarca:'Campinas/SP', responsavel:'Dra. Ana', status:'Arquivado', distribuido:d(-700),
+    andamentos:[
+      { data:d(-120), texto:'Arquivamento definitivo após trânsito em julgado.' }
+    ],
+    docs:[
+      { nome:'Sentença.pdf', tipo:'Decisão', data:d(-130), tamanho:'520 KB' }
+    ]
+  },
+  {
+    id:'p6', numero:'0003322-11.2026.8.26.0100', clienteId:'c3', parte:'Seguradora Z',
+    vara:'2ª Vara Cível', comarca:'Santos/SP', responsavel:'Dra. Ana', status:'Ativo', distribuido:d(-60),
+    andamentos:[
+      { data:d(-2), texto:'Despacho: designada audiência de conciliação.' }
+    ],
+    docs:[
+      { nome:'Apólice de seguro.pdf', tipo:'Documento', data:d(-58), tamanho:'1,1 MB' },
+      { nome:'Fotos do sinistro.zip', tipo:'Prova', data:d(-40), tamanho:'8,2 MB' }
+    ]
+  }
+];
+
+/* ---------- prazos ---------- */
+let prazos = [
+  { id:'pr1', processoId:'p1', tipo:'Contestação', data:d(0), fatal:true,  hora:'18:00', concluido:false },
+  { id:'pr2', processoId:'p2', tipo:'Réplica', data:d(0), fatal:true,  hora:'18:00', concluido:false },
+  { id:'pr3', processoId:'p3', tipo:'Enviar minuta ao cliente', data:d(-2), fatal:false, hora:'—', concluido:false },
+  { id:'pr4', processoId:'p6', tipo:'Audiência de conciliação', data:d(3), fatal:true, hora:'14:30', concluido:false },
+  { id:'pr5', processoId:'p4', tipo:'Manifestação sobre laudo', data:d(7), fatal:true, hora:'18:00', concluido:false },
+  { id:'pr6', processoId:'p1', tipo:'Audiência de instrução', data:d(12), fatal:true, hora:'10:00', concluido:false },
+  { id:'pr7', processoId:'p2', tipo:'Reunião com cliente', data:d(1), fatal:false, hora:'09:00', concluido:false }
+];
+
+/* ---------- financeiro ---------- */
+let faturas = [
+  { id:'f1', numero:'2041', clienteId:'c1', processoId:'p1', valor:3500, vencimento:d(-6), status:'emitida' },
+  { id:'f2', numero:'2042', clienteId:'c2', processoId:'p2', valor:8200, vencimento:d(5),  status:'enviada' },
+  { id:'f3', numero:'2043', clienteId:'c4', processoId:'p3', valor:1800, vencimento:d(2),  status:'emitida' },
+  { id:'f4', numero:'2044', clienteId:'c5', processoId:'p4', valor:6500, vencimento:d(-12), status:'paga' },
+  { id:'f5', numero:'2045', clienteId:'c3', processoId:'p6', valor:4200, vencimento:d(8),  status:'emitida' },
+  { id:'f6', numero:'2040', clienteId:'c2', processoId:'p2', valor:2900, vencimento:d(-25), status:'paga' }
+];
+
+let horas = [
+  { id:'h1', processoId:'p1', data:d(0),  minutos:45, descricao:'Análise do despacho e minuta de contestação', responsavel:'Dr. Renan' },
+  { id:'h2', processoId:'p2', data:d(-1), minutos:90, descricao:'Revisão da réplica', responsavel:'Dra. Ana' },
+  { id:'h3', processoId:'p6', data:d(-2), minutos:30, descricao:'Preparação para audiência de conciliação', responsavel:'Dra. Ana' }
+];
+
+/* ---------- publicações ---------- */
+const publicacoes = [
+  { id:'pub1', processoId:'p1', tribunal:'DJEN', data:d(0),  texto:'Intimação para apresentar contestação no prazo legal.' },
+  { id:'pub2', processoId:'p2', tribunal:'DJEN', data:d(0),  texto:'Despacho: intimação para apresentar réplica.' },
+  { id:'pub3', processoId:'p6', tribunal:'e-SAJ', data:d(-1), texto:'Designada audiência de conciliação.' },
+  { id:'pub4', processoId:'p4', tribunal:'DJEN', data:d(-1), texto:'Manifestação sobre laudo pericial.' }
+];
+
+/* ---------- modelos de documento ---------- */
+const modelos = [
+  { id:'m1', nome:'Procuração ad judicia', descricao:'Procuração com poderes gerais para o foro.' },
+  { id:'m2', nome:'Contrato de honorários', descricao:'Honorários fixos, por hora e de êxito.' },
+  { id:'m3', nome:'Substabelecimento', descricao:'Substabelecimento sem reserva de poderes.' },
+  { id:'m4', nome:'Contestação', descricao:'Estrutura base com preliminares e mérito.' }
+];
+
+/* ---------- estado ---------- */
+const state = {
+  view:'hoje',
+  selectedProcess:null,
+  processTab:'andamentos',
+  search:'',
+  filtroStatus:'',
+  filtroResp:'',
+  filtroCliente:'',
+  docTab:'modelos',
+  finTab:'todas',
+  weekOffset:0
+};
+
+/* ---------- consultas ---------- */
+const content = document.getElementById('content');
+const searchInput = document.getElementById('global-search');
+
+const cliente = id => clientes.find(c => c.id === id) || { nome:'—', tipo:'', contato:'', responsavel:'', ultimoContato:HOJE };
+const processo = id => processos.find(p => p.id === id);
+const faturasDoProcesso = id => faturas.filter(f => f.processoId === id);
+const prazosDoProcesso = id => prazos.filter(p => p.processoId === id);
+
+function proximoPrazo(pid){
+  return prazos
+    .filter(p => p.processoId === pid && !p.concluido)
+    .sort((a,b) => a.data - b.data)[0];
+}
+
+/* ============================================================
+   Componentes pequenos
+   ============================================================ */
+function statusBadge(status){
+  const map = { Ativo:'ok', Suspenso:'warn', Arquivado:'neutral', Encerrado:'neutral' };
+  return `<span class="badge ${map[status] || 'neutral'}">${esc(status)}</span>`;
+}
+function prazoBadge(p){
+  if(p.concluido) return '<span class="badge neutral">Concluído</span>';
+  const n = diffDays(p.data, HOJE);
+  if(n < 0) return '<span class="badge danger">Atrasado</span>';
+  if(n === 0) return `<span class="badge ${p.fatal ? 'danger' : 'warn'}">Hoje</span>`;
+  if(n <= 7) return `<span class="badge ${p.fatal ? 'warn' : 'info'}">${n} ${plural(n,'dia','dias')}</span>`;
+  return `<span class="badge neutral">${n} dias</span>`;
+}
+function faturaBadge(f){
+  if(f.status === 'paga') return '<span class="badge ok">Paga</span>';
+  if(f.vencimento < HOJE) return '<span class="badge danger">Vencida</span>';
+  if(f.status === 'enviada') return '<span class="badge info">Enviada</span>';
+  return '<span class="badge neutral">Emitida</span>';
+}
+function stat(label, value, hint, opts){
+  opts = opts || {};
+  return `<div class="card stat ${opts.alert ? 'alert' : ''}">
+    <div class="label">${label}</div>
+    <div class="value ${opts.money ? 'money' : ''}">${value}</div>
+    <div class="hint">${hint}</div>
+  </div>`;
+}
+function quandoTexto(p){
+  const n = diffDays(p.data, HOJE);
+  const hora = p.hora && p.hora !== '—' ? ' · ' + p.hora : '';
+  if(n === 0) return 'hoje' + hora;
+  if(n < 0) return `atrasado há ${Math.abs(n)} ${plural(Math.abs(n),'dia','dias')}`;
+  return `em ${n} ${plural(n,'dia','dias')}${hora}`;
+}
+function deadlineRow(p){
+  const proc = processo(p.processoId);
+  const cli = cliente(proc.clienteId);
+  const n = diffDays(p.data, HOJE);
+  return `<div class="deadline">
+    <span class="badge ${p.fatal ? 'danger' : 'neutral'}">${p.fatal ? 'Fatal' : 'Interno'}</span>
+    <div class="deadline-main">
+      <div class="deadline-title">${esc(p.tipo)} — <span class="mono">${proc.numero}</span></div>
+      <div class="meta">${esc(cli.nome)} × ${esc(proc.parte)} · ${esc(proc.responsavel)} · <span class="${n <= 0 ? 'text-danger' : ''}">${quandoTexto(p)}</span></div>
+    </div>
+    <div class="deadline-actions">
+      <button class="btn sm" data-action="conclude-prazo" data-id="${p.id}">Concluir</button>
+      <button class="btn sm" data-action="open-process" data-id="${proc.id}">Abrir</button>
+    </div>
+  </div>`;
+}
+function pubRow(pub){
+  const proc = processo(pub.processoId);
+  const cli = cliente(proc.clienteId);
+  return `<div class="pub">
+    <div class="pub-top"><span class="badge info">${esc(pub.tribunal)}</span><span class="small muted">${sameDay(pub.data,HOJE) ? 'hoje' : fmt(pub.data)}</span></div>
+    <div class="pub-title">${esc(cli.nome)} · <span class="mono">${proc.numero}</span></div>
+    <div class="pub-text">${esc(pub.texto)}</div>
+    <button class="btn sm" data-action="new-prazo" data-id="${proc.id}">Criar prazo</button>
+  </div>`;
+}
+
+/* ============================================================
+   Tela: Hoje
+   ============================================================ */
+function renderHoje(){
+  const doDia = prazos
+    .filter(p => !p.concluido && sameDay(p.data, HOJE))
+    .sort((a,b) => (a.hora || '').localeCompare(b.hora || ''));
+  const atrasados = prazos
+    .filter(p => !p.concluido && p.data < HOJE)
+    .sort((a,b) => a.data - b.data);
+  const fatais = doDia.filter(p => p.fatal).length;
+  const vencidas = faturas.filter(f => f.status !== 'paga' && f.vencimento < HOJE);
+  const totalVencido = vencidas.reduce((s,f) => s + f.valor, 0);
+  const ativos = processos.filter(p => p.status === 'Ativo').length;
+
+  const movs = processos
+    .flatMap(p => p.andamentos.map(a => ({ data:a.data, texto:a.texto, processo:p })))
+    .sort((a,b) => b.data - a.data)
+    .slice(0,5);
+
+  const aReceber = faturas
+    .filter(f => f.status !== 'paga' && diffDays(f.vencimento, HOJE) <= 7)
+    .sort((a,b) => a.vencimento - b.vencimento);
+  const totalReceber = aReceber.reduce((s,f) => s + f.valor, 0);
+
+  content.innerHTML = `
+    <div class="page-head">
+      <div>
+        <h1>Hoje</h1>
+        <p>${fmtLong(HOJE)}</p>
+      </div>
+      <div class="actions">
+        <button class="btn" data-action="new-prazo">Novo prazo</button>
+        <button class="btn primary" data-action="new-process">Novo processo</button>
+      </div>
+    </div>
+
+    <div class="grid-stats">
+      ${stat('Prazos hoje', doDia.length, fatais ? fatais + ' fatal' + (fatais > 1 ? 'is' : '') : 'nenhum prazo fatal', { alert:fatais > 0 })}
+      ${stat('Publicações novas', publicacoes.length, 'aguardando triagem')}
+      ${stat('Faturas vencidas', money(totalVencido), vencidas.length + ' ' + plural(vencidas.length,'fatura','faturas'), { alert:vencidas.length > 0, money:true })}
+      ${stat('Processos ativos', ativos, 'em acompanhamento')}
+    </div>
+
+    ${atrasados.length ? `<div class="alert-strip">
+      <span><strong>${atrasados.length} ${plural(atrasados.length,'prazo','prazos')} atrasado${atrasados.length > 1 ? 's' : ''}</strong> — ${esc(atrasados[0].tipo)} · ${esc(cliente(processo(atrasados[0].processoId).clienteId).nome)}</span>
+      <button class="link" data-action="nav" data-id="prazos">Ver prazos</button>
+    </div>` : ''}
+
+    <div class="cols">
+      <div class="stack">
+        <section class="card">
+          <div class="card-head"><h2>Prazos de hoje</h2><button class="link" data-action="nav" data-id="prazos">Ver agenda</button></div>
+          ${doDia.length ? doDia.map(deadlineRow).join('') : '<div class="empty">Nenhum prazo para hoje.</div>'}
+        </section>
+
+        <section class="card">
+          <div class="card-head"><h2>Movimentações recentes</h2><span class="sub">toque para abrir o processo</span></div>
+          <table>
+            <thead><tr><th>Data</th><th>Processo</th><th>Andamento</th></tr></thead>
+            <tbody>
+              ${movs.map(m => `<tr class="row-click" data-action="open-process" data-id="${m.processo.id}">
+                <td class="num nowrap">${sameDay(m.data,HOJE) ? 'hoje' : fmt(m.data)}</td>
+                <td class="mono nowrap">${m.processo.numero}</td>
+                <td>${esc(m.texto)}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </section>
+      </div>
+
+      <div class="stack">
+        <section class="card">
+          <div class="card-head"><h2>Publicações</h2><span class="sub">${publicacoes.length} novas</span></div>
+          ${publicacoes.map(pubRow).join('')}
+        </section>
+
+        <section class="card">
+          <div class="card-head"><h2>A receber esta semana</h2><span class="sub">${aReceber.length} ${plural(aReceber.length,'fatura','faturas')}</span></div>
+          ${aReceber.length ? aReceber.map(f => `<div class="mini-row">
+            <div>
+              <div>${esc(cliente(f.clienteId).nome)}</div>
+              <div class="small muted">Fatura #${f.numero} · vence ${fmt(f.vencimento)}</div>
+            </div>
+            <div class="right">
+              <div class="num ${f.vencimento < HOJE ? 'text-danger' : ''}">${money(f.valor)}</div>
+              <div class="small ${f.vencimento < HOJE ? 'text-danger' : 'muted'}">${f.vencimento < HOJE ? 'vencida' : 'em aberto'}</div>
+            </div>
+          </div>`).join('') : '<div class="empty">Nada a receber nos próximos 7 dias.</div>'}
+          <div class="total-row"><span>Total</span><span class="num">${money(totalReceber)}</span></div>
+        </section>
+      </div>
+    </div>
+  `;
+}
+
+/* ============================================================
+   Tela: Processos
+   ============================================================ */
+function renderProcessos(){
+  const termo = state.search.trim().toLowerCase();
+  let lista = processos.slice();
+  if(state.filtroStatus) lista = lista.filter(p => p.status === state.filtroStatus);
+  if(state.filtroResp) lista = lista.filter(p => p.responsavel === state.filtroResp);
+  if(state.filtroCliente) lista = lista.filter(p => p.clienteId === state.filtroCliente);
+  if(termo) lista = lista.filter(p => (
+    p.numero + ' ' + cliente(p.clienteId).nome + ' ' + p.parte + ' ' + p.comarca + ' ' + p.vara
+  ).toLowerCase().includes(termo));
+
+  const temFiltro = !!(state.filtroStatus || state.filtroResp || state.filtroCliente || termo);
+
+  content.innerHTML = `
+    <div class="page-head">
+      <div>
+        <h1>Processos</h1>
+        <p>${lista.length} ${plural(lista.length,'processo','processos')}${temFiltro ? ' encontrados' : ' no escritório'}</p>
+      </div>
+      <div class="actions"><button class="btn primary" data-action="new-process">Novo processo</button></div>
+    </div>
+
+    <section class="card">
+      <div class="filters">
+        <select data-filter="filtroStatus" aria-label="Filtrar por status">
+          <option value="">Status: todos</option>
+          ${['Ativo','Suspenso','Arquivado'].map(s => `<option value="${s}" ${state.filtroStatus === s ? 'selected' : ''}>${s}</option>`).join('')}
+        </select>
+        <select data-filter="filtroResp" aria-label="Filtrar por responsável">
+          <option value="">Responsável: todos</option>
+          ${['Dr. Renan','Dra. Ana'].map(r => `<option value="${r}" ${state.filtroResp === r ? 'selected' : ''}>${r}</option>`).join('')}
+        </select>
+        ${state.filtroCliente ? `<span class="chip-x">Cliente: ${esc(cliente(state.filtroCliente).nome)} <button class="link" data-action="clear-client" aria-label="Limpar filtro de cliente">×</button></span>` : ''}
+        <span class="spacer"></span>
+        ${temFiltro ? '<button class="link" data-action="clear-filters">Limpar filtros</button>' : ''}
+      </div>
+      <table>
+        <thead><tr><th>Processo</th><th>Cliente × parte contrária</th><th>Comarca</th><th>Responsável</th><th>Status</th><th>Próximo prazo</th></tr></thead>
+        <tbody>
+          ${lista.length ? lista.map(p => {
+            const pp = proximoPrazo(p.id);
+            return `<tr class="row-click" data-action="open-process" data-id="${p.id}">
+              <td class="mono nowrap">${p.numero}</td>
+              <td>${esc(cliente(p.clienteId).nome)}<div class="small muted">× ${esc(p.parte)}</div></td>
+              <td class="nowrap">${esc(p.comarca)}</td>
+              <td class="nowrap">${esc(p.responsavel)}</td>
+              <td>${statusBadge(p.status)}</td>
+              <td class="nowrap">${pp ? prazoBadge(pp) + ' <span class="small muted">' + esc(pp.tipo) + '</span>' : '<span class="small muted">—</span>'}</td>
+            </tr>`;
+          }).join('') : '<tr><td colspan="6"><div class="empty">Nenhum processo encontrado com esses filtros.</div></td></tr>'}
+        </tbody>
+      </table>
+    </section>
+  `;
+}
+
+/* ============================================================
+   Tela: Processo (detalhe)
+   ============================================================ */
+function renderProcesso(){
+  const p = processos.find(x => x.id === state.selectedProcess);
+  if(!p){
+    content.innerHTML = '<div class="empty">Processo não encontrado. <button class="link" data-action="nav" data-id="processos">Voltar para processos</button></div>';
+    return;
+  }
+
+  const tabs = [
+    ['andamentos','Andamentos'],
+    ['prazos','Prazos'],
+    ['documentos','Documentos'],
+    ['financeiro','Financeiro'],
+    ['dados','Dados']
+  ];
+  const listaPrazos = prazosDoProcesso(p.id).slice().sort((a,b) => a.data - b.data);
+  const listaFaturas = faturasDoProcesso(p.id);
+  let painel = '';
+
+  if(state.processTab === 'andamentos'){
+    const itens = p.andamentos.slice().sort((a,b) => b.data - a.data);
+    painel = itens.length ? `<div class="timeline">
+      ${itens.map((a,i) => `<div class="timeline-item">
+        <span class="timeline-dot ${i === 0 ? 'active' : ''}"></span>
+        <div>
+          <div class="timeline-text">${esc(a.texto)}</div>
+          <div class="timeline-date">${sameDay(a.data,HOJE) ? 'hoje' : fmt(a.data)}${i === 0 ? ' · mais recente' : ''}</div>
+        </div>
+      </div>`).join('')}
+    </div>` : '<div class="empty">Nenhum andamento registrado.</div>';
+  }
+
+  if(state.processTab === 'prazos'){
+    painel = `<table>
+      <thead><tr><th>Data</th><th>Prazo</th><th>Prioridade</th><th>Status</th><th class="right">Ação</th></tr></thead>
+      <tbody>
+        ${listaPrazos.length ? listaPrazos.map(pr => `<tr>
+          <td class="num nowrap">${fmt(pr.data)}${pr.hora && pr.hora !== '—' ? ' <span class="small muted">' + pr.hora + '</span>' : ''}</td>
+          <td>${esc(pr.tipo)}</td>
+          <td><span class="badge ${pr.fatal ? 'danger' : 'neutral'}">${pr.fatal ? 'Fatal' : 'Interno'}</span></td>
+          <td>${prazoBadge(pr)}</td>
+          <td class="right">${pr.concluido ? '<span class="small muted">Concluído</span>' : `<button class="btn sm" data-action="conclude-prazo" data-id="${pr.id}">Concluir</button>`}</td>
+        </tr>`).join('') : '<tr><td colspan="5"><div class="empty">Nenhum prazo cadastrado.</div></td></tr>'}
+      </tbody>
+    </table>`;
+  }
+
+  if(state.processTab === 'documentos'){
+    painel = `<table>
+      <thead><tr><th>Documento</th><th>Tipo</th><th>Data</th><th>Tamanho</th><th class="right">Ação</th></tr></thead>
+      <tbody>
+        ${p.docs.length ? p.docs.map(doc => `<tr>
+          <td>${esc(doc.nome)}</td>
+          <td class="small muted">${esc(doc.tipo)}</td>
+          <td class="num nowrap">${fmt(doc.data)}</td>
+          <td class="small muted nowrap">${esc(doc.tamanho)}</td>
+          <td class="right"><button class="btn sm" data-action="toast" data-msg="Download simulado neste protótipo">Baixar</button></td>
+        </tr>`).join('') : '<tr><td colspan="5"><div class="empty">Nenhum documento anexado.</div></td></tr>'}
+      </tbody>
+    </table>`;
+  }
+
+  if(state.processTab === 'financeiro'){
+    const pago = listaFaturas.filter(f => f.status === 'paga').reduce((s,f) => s + f.valor, 0);
+    const aberto = listaFaturas.filter(f => f.status !== 'paga').reduce((s,f) => s + f.valor, 0);
+    painel = `<div class="pane-pad" style="display:flex;align-items:center;gap:28px;border-bottom:1px solid var(--line)">
+      <div><div class="small muted">Recebido</div><div class="strong num">${money(pago)}</div></div>
+      <div><div class="small muted">Em aberto</div><div class="strong num">${money(aberto)}</div></div>
+      <div style="margin-left:auto"><button class="btn sm" data-action="new-time" data-id="${p.id}">Lançar horas</button></div>
+    </div>
+    <table>
+      <thead><tr><th>Fatura</th><th>Vencimento</th><th>Valor</th><th>Status</th><th class="right">Ação</th></tr></thead>
+      <tbody>
+        ${listaFaturas.length ? listaFaturas.map(f => `<tr>
+          <td class="mono">#${f.numero}</td>
+          <td class="num nowrap">${fmt(f.vencimento)}</td>
+          <td class="num">${money(f.valor)}</td>
+          <td>${faturaBadge(f)}</td>
+          <td class="right">${f.status !== 'paga' ? `<button class="btn sm" data-action="pay-fatura" data-id="${f.id}">Marcar como paga</button>` : '<span class="small muted">—</span>'}</td>
+        </tr>`).join('') : '<tr><td colspan="5"><div class="empty">Nenhuma fatura para este processo.</div></td></tr>'}
+      </tbody>
+    </table>`;
+  }
+
+  if(state.processTab === 'dados'){
+    painel = `<div class="pane-pad"><dl class="dl">
+      <dt>Cliente</dt><dd>${esc(cliente(p.clienteId).nome)}</dd>
+      <dt>Parte contrária</dt><dd>${esc(p.parte)}</dd>
+      <dt>Vara</dt><dd>${esc(p.vara)}</dd>
+      <dt>Comarca</dt><dd>${esc(p.comarca)}</dd>
+      <dt>Responsável</dt><dd>${esc(p.responsavel)}</dd>
+      <dt>Status</dt><dd>${statusBadge(p.status)}</dd>
+      <dt>Distribuição</dt><dd>${fmt(p.distribuido)}</dd>
+      <dt>Número CNJ</dt><dd class="mono">${p.numero}</dd>
+    </dl></div>`;
+  }
+
+  const proximo = proximoPrazo(p.id);
+  const faturaAberta = faturasDoProcesso(p.id)
+    .filter(f => f.status !== 'paga')
+    .sort((a,b) => a.vencimento - b.vencimento)[0];
+
+  const resumo = `<div class="proc-summary">
+    <div class="cell">
+      <div class="label">Próximo prazo</div>
+      <div class="val">${proximo
+        ? prazoBadge(proximo) + ' <span>' + esc(proximo.tipo) + '</span> <span class="small muted">' + quandoTexto(proximo) + '</span> <button class="btn sm" data-action="conclude-prazo" data-id="' + proximo.id + '">Concluir</button>'
+        : '<span class="small muted">Nenhum prazo pendente</span>'}</div>
+    </div>
+    <div class="cell">
+      <div class="label">Financeiro</div>
+      <div class="val">${faturaAberta
+        ? '<span class="num">' + money(faturaAberta.valor) + '</span> ' + faturaBadge(faturaAberta) + ' <span class="small muted">Fatura #' + faturaAberta.numero + ' · vence ' + fmt(faturaAberta.vencimento) + '</span>'
+        : '<span class="small muted">Sem faturas em aberto</span>'}</div>
+    </div>
+  </div>`;
+
+  content.innerHTML = `
+    <div class="proc-head">
+      <div>
+        <button class="link" data-action="nav" data-id="processos">← Processos</button>
+        <h1>${p.numero}</h1>
+        <div class="proc-sub">${esc(cliente(p.clienteId).nome)} × ${esc(p.parte)} · ${esc(p.vara)} · ${esc(p.comarca)} · ${esc(p.responsavel)}</div>
+      </div>
+      <div class="proc-side">
+        ${statusBadge(p.status)}
+        <div class="actions">
+          <button class="btn" data-action="new-prazo" data-id="${p.id}">Novo prazo</button>
+          <button class="btn" data-action="generate-doc" data-id="${p.id}">Gerar documento</button>
+        </div>
+      </div>
+    </div>
+
+    ${resumo}
+
+    <div class="card">
+      <div class="tabs">
+        ${tabs.map(([key,label]) => `<button class="tab ${state.processTab === key ? 'active' : ''}" data-action="process-tab" data-id="${key}">${label}</button>`).join('')}
+      </div>
+      <div class="tab-body">${painel}</div>
+    </div>
+  `;
+}
+
+/* ============================================================
+   Tela: Prazos (agenda semanal)
+   ============================================================ */
+function prazoBlock(p){
+  const proc = processo(p.processoId);
+  const cli = cliente(proc.clienteId);
+  return `<button class="prazo-block ${p.fatal ? 'fatal' : ''} ${p.concluido ? 'done' : ''}" data-action="open-process" data-id="${p.processoId}">
+    <span class="pb-time">${esc(p.hora || '—')} · ${p.fatal ? 'Fatal' : 'Interno'}</span>
+    <span class="pb-title">${esc(p.tipo)}</span>
+    <span class="pb-meta">${esc(cli.nome)}</span>
+    <span class="pb-meta mono">${proc.numero}</span>
+  </button>`;
+}
+
+function renderPrazos(){
+  const inicio = addDays(mondayOf(HOJE), state.weekOffset * 7);
+  const dias = [0,1,2,3,4].map(i => addDays(inicio, i));
+  const daSemana = prazos.filter(p => p.data >= inicio && p.data < addDays(inicio, 7));
+  const atrasados = prazos.filter(p => !p.concluido && p.data < HOJE).sort((a,b) => a.data - b.data);
+  const total = daSemana.filter(p => !p.concluido).length;
+
+  const cols = dias.map((dia, i) => {
+    const itens = daSemana.filter(p => {
+      const idx = diffDays(p.data, inicio);
+      return idx === i || (i === 4 && (idx === 5 || idx === 6));
+    }).sort((a,b) => (a.hora || '').localeCompare(b.hora || ''));
+    const hoje = sameDay(dia, HOJE);
+    return `<div class="week-day ${hoje ? 'today' : ''}">
+      <div class="week-day-head"><span>${['seg','ter','qua','qui','sex'][i]} ${fmt(dia)}</span><span>${itens.length || ''}</span></div>
+      <div class="week-body">
+        ${itens.map(prazoBlock).join('') || (hoje ? '<span class="small muted">Sem prazos</span>' : '')}
+      </div>
+    </div>`;
+  }).join('');
+
+  content.innerHTML = `
+    <div class="page-head">
+      <div>
+        <h1>Prazos</h1>
+        <p>Agenda da semana e prazos fatais</p>
+      </div>
+      <div class="actions"><button class="btn primary" data-action="new-prazo">Novo prazo</button></div>
+    </div>
+
+    ${atrasados.length ? `<div class="alert-strip">
+      <span><strong>${atrasados.length} ${plural(atrasados.length,'prazo','prazos')} atrasado${atrasados.length > 1 ? 's' : ''}</strong> — ${esc(atrasados[0].tipo)} · ${esc(cliente(processo(atrasados[0].processoId).clienteId).nome)}</span>
+      <button class="link" data-action="nav" data-id="hoje">Ver na tela Hoje</button>
+    </div>` : ''}
+
+    <section class="card">
+      <div class="week-toolbar">
+        <div class="mid">
+          <button class="btn sm" data-action="week" data-id="-1" aria-label="Semana anterior">‹</button>
+          <strong>${fmt(inicio)} – ${fmt(dias[4])}</strong>
+          <span>· ${total} ${plural(total,'prazo','prazos')}</span>
+          <button class="btn sm" data-action="week" data-id="1" aria-label="Próxima semana">›</button>
+        </div>
+        <button class="link" data-action="week-today">Voltar para hoje</button>
+      </div>
+      <div class="week-wrap"><div class="week">${cols}</div></div>
+    </section>
+  `;
+}
+
+/* ============================================================
+   Tela: Clientes
+   ============================================================ */
+function renderClientes(){
+  const linhas = clientes.map(c => {
+    const procs = processos.filter(p => p.clienteId === c.id);
+    const ativos = procs.filter(p => p.status === 'Ativo').length;
+    const aberto = faturas.filter(f => f.clienteId === c.id && f.status !== 'paga').reduce((s,f) => s + f.valor, 0);
+    const dias = diffDays(HOJE, c.ultimoContato);
+    return { c, ativos, total:procs.length, aberto, dias };
+  });
+
+  content.innerHTML = `
+    <div class="page-head">
+      <div>
+        <h1>Clientes</h1>
+        <p>${clientes.length} clientes · ${processos.filter(p => p.status === 'Ativo').length} processos ativos</p>
+      </div>
+      <div class="actions"><button class="btn primary" data-action="new-client">Novo cliente</button></div>
+    </div>
+
+    <section class="card">
+      <table>
+        <thead><tr><th>Cliente</th><th>Tipo</th><th>Processos</th><th>Responsável</th><th>Último contato</th><th class="right">A receber</th><th></th></tr></thead>
+        <tbody>
+          ${linhas.map(({c,ativos,total,aberto,dias}) => `<tr class="row-click" data-action="filter-client" data-id="${c.id}">
+            <td><span class="strong">${esc(c.nome)}</span><div class="small muted">${esc(c.contato)}</div></td>
+            <td><span class="badge neutral">${c.tipo}</span></td>
+            <td class="num nowrap">${ativos} ativo${ativos === 1 ? '' : 's'}<span class="small muted"> / ${total}</span></td>
+            <td class="nowrap">${esc(c.responsavel)}</td>
+            <td class="nowrap ${dias > 10 ? 'text-danger' : ''}">${dias === 0 ? 'hoje' : 'há ' + dias + ' ' + plural(dias,'dia','dias')}</td>
+            <td class="right num">${aberto ? money(aberto) : '<span class="muted">—</span>'}</td>
+            <td class="right"><span class="link">Ver processos</span></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </section>
+  `;
+}
+
+/* ============================================================
+   Tela: Documentos
+   ============================================================ */
+function renderDocumentos(){
+  const arquivos = processos
+    .flatMap(p => p.docs.map(doc => ({ doc, processo:p })))
+    .sort((a,b) => b.doc.data - a.doc.data);
+  const modelosAtivo = state.docTab === 'modelos';
+
+  const painel = modelosAtivo
+    ? `<div class="pane-pad">
+        <div class="model-grid">
+          ${modelos.map(m => `<div class="card model">
+            <span class="badge neutral">Modelo</span>
+            <h3>${esc(m.nome)}</h3>
+            <p>${esc(m.descricao)}</p>
+            <button class="btn sm" data-action="generate-doc" data-modelo="${m.id}">Gerar documento</button>
+          </div>`).join('')}
+        </div>
+      </div>`
+    : `<table>
+        <thead><tr><th>Documento</th><th>Processo</th><th>Cliente</th><th>Data</th><th>Tamanho</th><th class="right">Ação</th></tr></thead>
+        <tbody>
+          ${arquivos.length ? arquivos.map(({doc,processo:proc}) => `<tr>
+            <td>${esc(doc.nome)}<div class="small muted">${esc(doc.tipo)}</div></td>
+            <td class="mono nowrap">${proc.numero}</td>
+            <td class="nowrap">${esc(cliente(proc.clienteId).nome)}</td>
+            <td class="num nowrap">${fmt(doc.data)}</td>
+            <td class="small muted nowrap">${esc(doc.tamanho)}</td>
+            <td class="right"><button class="btn sm" data-action="toast" data-msg="Download simulado neste protótipo">Baixar</button></td>
+          </tr>`).join('') : '<tr><td colspan="6"><div class="empty">Nenhum arquivo.</div></td></tr>'}
+        </tbody>
+      </table>`;
+
+  content.innerHTML = `
+    <div class="page-head">
+      <div>
+        <h1>Documentos</h1>
+        <p>${modelos.length} modelos e ${arquivos.length} arquivos</p>
+      </div>
+      <div class="actions"><button class="btn primary" data-action="generate-doc">Gerar documento</button></div>
+    </div>
+
+    <div class="card">
+      <div class="tabs">
+        <button class="tab ${modelosAtivo ? 'active' : ''}" data-action="doc-tab" data-id="modelos">Modelos</button>
+        <button class="tab ${!modelosAtivo ? 'active' : ''}" data-action="doc-tab" data-id="arquivos">Arquivos (${arquivos.length})</button>
+      </div>
+      <div class="tab-body">${painel}</div>
+    </div>
+  `;
+}
+
+/* ============================================================
+   Tela: Financeiro
+   ============================================================ */
+function finChip(key, label){
+  return `<button class="chip ${state.finTab === key ? 'active' : ''}" data-action="fin-tab" data-id="${key}">${label}</button>`;
+}
+
+function renderFinanceiro(){
+  const abertas = faturas.filter(f => f.status !== 'paga');
+  const totalAberto = abertas.reduce((s,f) => s + f.valor, 0);
+  const vencidas = abertas.filter(f => f.vencimento < HOJE);
+  const totalVencido = vencidas.reduce((s,f) => s + f.valor, 0);
+  const totalPago = faturas.filter(f => f.status === 'paga').reduce((s,f) => s + f.valor, 0);
+
+  let lista = faturas.slice();
+  if(state.finTab === 'aberto') lista = abertas;
+  if(state.finTab === 'vencidas') lista = vencidas;
+  if(state.finTab === 'pagas') lista = faturas.filter(f => f.status === 'paga');
+  lista.sort((a,b) => a.vencimento - b.vencimento);
+
+  const totalHoras = horas.reduce((s,h) => s + h.minutos, 0);
+  const horasOrdenadas = horas.slice().sort((a,b) => b.data - a.data);
+
+  content.innerHTML = `
+    <div class="page-head">
+      <div>
+        <h1>Financeiro</h1>
+        <p>Honorários, faturas e horas do escritório</p>
+      </div>
+      <div class="actions"><button class="btn primary" data-action="new-time">Lançar horas</button></div>
+    </div>
+
+    <div class="grid-stats">
+      ${stat('A receber', money(totalAberto), abertas.length + ' ' + plural(abertas.length,'fatura','faturas') + ' em aberto', { money:true })}
+      ${stat('Vencido', money(totalVencido), vencidas.length + ' ' + plural(vencidas.length,'fatura','faturas') + ' em atraso', { money:true, alert:vencidas.length > 0 })}
+      ${stat('Recebido', money(totalPago), 'faturas quitadas', { money:true })}
+      ${stat('Horas no mês', minutosTexto(totalHoras), horas.length + ' lançamentos')}
+    </div>
+
+    <section class="card" style="margin-bottom:16px">
+      <div class="filters">
+        ${finChip('todas','Todas')}
+        ${finChip('aberto','Em aberto')}
+        ${finChip('vencidas','Vencidas')}
+        ${finChip('pagas','Pagas')}
+        <span class="spacer"></span>
+        <span class="small muted">${lista.length} ${plural(lista.length,'fatura','faturas')}</span>
+      </div>
+      <table>
+        <thead><tr><th>Fatura</th><th>Cliente / processo</th><th>Vencimento</th><th class="right">Valor</th><th>Status</th><th class="right">Ação</th></tr></thead>
+        <tbody>
+          ${lista.length ? lista.map(f => `<tr>
+            <td class="mono">#${f.numero}</td>
+            <td>${esc(cliente(f.clienteId).nome)}<div class="small muted mono">${esc(processo(f.processoId) ? processo(f.processoId).numero : '—')}</div></td>
+            <td class="num nowrap ${f.status !== 'paga' && f.vencimento < HOJE ? 'text-danger' : ''}">${fmt(f.vencimento)}</td>
+            <td class="right num">${money(f.valor)}</td>
+            <td>${faturaBadge(f)}</td>
+            <td class="right">${f.status !== 'paga' ? `<button class="btn sm" data-action="pay-fatura" data-id="${f.id}">Marcar como paga</button>` : '<span class="small muted">—</span>'}</td>
+          </tr>`).join('') : '<tr><td colspan="6"><div class="empty">Nenhuma fatura neste filtro.</div></td></tr>'}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h2>Horas lançadas</h2><span class="sub">${minutosTexto(totalHoras)} no total</span></div>
+      <table>
+        <thead><tr><th>Data</th><th>Processo</th><th>Descrição</th><th>Tempo</th><th>Responsável</th></tr></thead>
+        <tbody>
+          ${horasOrdenadas.map(h => {
+            const proc = processo(h.processoId);
+            return `<tr>
+              <td class="num nowrap">${sameDay(h.data,HOJE) ? 'hoje' : fmt(h.data)}</td>
+              <td class="mono nowrap">${proc ? proc.numero : '—'}</td>
+              <td>${esc(h.descricao)}</td>
+              <td class="num nowrap">${minutosTexto(h.minutos)}</td>
+              <td class="nowrap">${esc(h.responsavel)}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </section>
+  `;
+}
+
+/* ============================================================
+   Navegação e renderização
+   ============================================================ */
+function render(){
+  const ativo = state.view === 'processo' ? 'processos' : state.view;
+  document.querySelectorAll('.nav-item[data-view]').forEach(b => {
+    b.classList.toggle('active', b.dataset.view === ativo);
+  });
+
+  if(state.view === 'hoje') renderHoje();
+  else if(state.view === 'processos') renderProcessos();
+  else if(state.view === 'processo') renderProcesso();
+  else if(state.view === 'prazos') renderPrazos();
+  else if(state.view === 'clientes') renderClientes();
+  else if(state.view === 'documentos') renderDocumentos();
+  else if(state.view === 'financeiro') renderFinanceiro();
+
+  syncHash();
+}
+
+function syncHash(){
+  const hash = state.view === 'processo' && state.selectedProcess
+    ? '#processo/' + state.selectedProcess
+    : '#' + state.view;
+  if(location.hash === hash) return;
+  try { history.replaceState(null, '', hash); } catch(e) { /* file:// em alguns navegadores */ }
+}
+
+function setView(view){
+  state.view = view;
+  if(view !== 'processo') state.selectedProcess = null;
+  render();
+  window.scrollTo(0, 0);
+}
+
+function openProcess(id){
+  state.selectedProcess = id;
+  state.processTab = 'andamentos';
+  state.view = 'processo';
+  render();
+  window.scrollTo(0, 0);
+}
+
+/* ============================================================
+   Avisos e modais
+   ============================================================ */
+const modalRoot = document.getElementById('modal-root');
+const toastRoot = document.getElementById('toast-root');
+
+function toast(msg){
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  toastRoot.appendChild(el);
+  setTimeout(() => el.remove(), 2800);
+}
+
+function closeModal(){
+  modalRoot.innerHTML = '';
+}
+
+function openModal(opts){
+  modalRoot.innerHTML = `<div class="overlay">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="${esc(opts.title)}">
+      <div class="modal-head">
+        <strong>${esc(opts.title)}</strong>
+        <button class="btn ghost sm" type="button" data-action="close-modal">Fechar</button>
+      </div>
+      <form id="modal-form">
+        <div class="modal-body">${opts.body}</div>
+        <div class="modal-foot">
+          <button class="btn" type="button" data-action="close-modal">Cancelar</button>
+          <button class="btn primary" type="submit">${esc(opts.submitLabel || 'Salvar')}</button>
+        </div>
+      </form>
+    </div>
+  </div>`;
+
+  const overlay = modalRoot.querySelector('.overlay');
+  overlay.addEventListener('click', e => {
+    if(e.target === overlay) closeModal();
+  });
+
+  const form = document.getElementById('modal-form');
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const dados = Object.fromEntries(new FormData(form).entries());
+    opts.onSubmit(dados);
+  });
+
+  const primeiro = form.querySelector('input, select, textarea');
+  if(primeiro) primeiro.focus();
+}
+
+/* ---------- novo prazo ---------- */
+function openNovoPrazo(processoId){
+  const ativos = processos.filter(p => p.status !== 'Arquivado');
+  const opcoes = ativos.map(p => `<option value="${p.id}" ${p.id === processoId ? 'selected' : ''}>${p.numero} — ${esc(cliente(p.clienteId).nome)}</option>`).join('');
+
+  openModal({
+    title:'Novo prazo',
+    submitLabel:'Criar prazo',
+    body:`
+      <div class="field">
+        <label for="np-processo">Processo</label>
+        <select id="np-processo" name="processo" required>${opcoes}</select>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label for="np-tipo">Tipo</label>
+          <select id="np-tipo" name="tipo">
+            <option>Contestação</option>
+            <option>Réplica</option>
+            <option>Recurso</option>
+            <option>Manifestação</option>
+            <option>Audiência</option>
+            <option>Perícia</option>
+            <option>Prazo interno</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="np-data">Data</label>
+          <input id="np-data" type="date" name="data" value="${iso(HOJE)}" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label for="np-hora">Hora</label>
+          <input id="np-hora" type="time" name="hora" value="18:00">
+        </div>
+        <div class="field">
+          <label for="np-prioridade">Prioridade</label>
+          <select id="np-prioridade" name="prioridade">
+            <option value="sim">Fatal</option>
+            <option value="nao">Interno</option>
+          </select>
+        </div>
+      </div>
+      <p class="note">O prazo aparece na agenda e no próximo prazo do processo.</p>
+    `,
+    onSubmit(dados){
+      const proc = processo(dados.processo);
+      if(!proc) return;
+      prazos.push({
+        id:'pr' + Date.now(),
+        processoId:proc.id,
+        tipo:dados.tipo,
+        data:new Date(dados.data + 'T00:00:00'),
+        fatal:dados.prioridade === 'sim',
+        hora:dados.hora || '—',
+        concluido:false
+      });
+      closeModal();
+      render();
+      toast('Prazo criado');
+    }
+  });
+}
+
+/* ---------- novo processo ---------- */
+function openNovoProcesso(){
+  const opcoes = clientes.map(c => `<option value="${c.id}">${esc(c.nome)}</option>`).join('');
+
+  openModal({
+    title:'Novo processo',
+    submitLabel:'Cadastrar processo',
+    body:`
+      <div class="field">
+        <label for="npr-numero">Número CNJ</label>
+        <input id="npr-numero" name="numero" placeholder="0000000-00.0000.0.00.0000" required>
+      </div>
+      <div class="field">
+        <label for="npr-cliente">Cliente</label>
+        <select id="npr-cliente" name="cliente" required>${opcoes}</select>
+      </div>
+      <div class="field">
+        <label for="npr-parte">Parte contrária</label>
+        <input id="npr-parte" name="parte" placeholder="Nome da parte contrária" required>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label for="npr-vara">Vara</label>
+          <input id="npr-vara" name="vara" placeholder="3ª Vara Cível">
+        </div>
+        <div class="field">
+          <label for="npr-comarca">Comarca</label>
+          <input id="npr-comarca" name="comarca" placeholder="São Paulo/SP">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label for="npr-responsavel">Responsável</label>
+          <select id="npr-responsavel" name="responsavel">
+            <option>Dr. Renan</option>
+            <option>Dra. Ana</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="npr-status">Status</label>
+          <select id="npr-status" name="status">
+            <option>Ativo</option>
+            <option>Suspenso</option>
+            <option>Arquivado</option>
+          </select>
+        </div>
+      </div>
+    `,
+    onSubmit(dados){
+      processos.push({
+        id:'p' + Date.now(),
+        numero:dados.numero,
+        clienteId:dados.cliente,
+        parte:dados.parte,
+        vara:dados.vara || '—',
+        comarca:dados.comarca || '—',
+        responsavel:dados.responsavel,
+        status:dados.status,
+        distribuido:HOJE,
+        andamentos:[{ data:HOJE, texto:'Processo cadastrado no sistema.' }],
+        docs:[]
+      });
+      closeModal();
+      state.search = '';
+      searchInput.value = '';
+      setView('processos');
+      toast('Processo cadastrado');
+    }
+  });
+}
+
+/* ---------- novo cliente ---------- */
+function openNovoCliente(){
+  openModal({
+    title:'Novo cliente',
+    submitLabel:'Cadastrar cliente',
+    body:`
+      <div class="field">
+        <label for="nc-nome">Nome</label>
+        <input id="nc-nome" name="nome" placeholder="Nome completo ou razão social" required>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label for="nc-tipo">Tipo</label>
+          <select id="nc-tipo" name="tipo">
+            <option value="PF">Pessoa física</option>
+            <option value="PJ">Pessoa jurídica</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="nc-responsavel">Responsável</label>
+          <select id="nc-responsavel" name="responsavel">
+            <option>Dr. Renan</option>
+            <option>Dra. Ana</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="nc-contato">Contato</label>
+        <input id="nc-contato" name="contato" placeholder="(11) 90000-0000">
+      </div>
+    `,
+    onSubmit(dados){
+      clientes.push({
+        id:'c' + Date.now(),
+        nome:dados.nome,
+        tipo:dados.tipo,
+        responsavel:dados.responsavel,
+        contato:dados.contato || '—',
+        ultimoContato:HOJE
+      });
+      closeModal();
+      render();
+      toast('Cliente cadastrado');
+    }
+  });
+}
+
+/* ---------- lançar horas ---------- */
+function openNovoHoras(processoId){
+  const ativos = processos.filter(p => p.status !== 'Arquivado');
+  const opcoes = ativos.map(p => `<option value="${p.id}" ${p.id === processoId ? 'selected' : ''}>${p.numero} — ${esc(cliente(p.clienteId).nome)}</option>`).join('');
+
+  openModal({
+    title:'Lançar horas',
+    submitLabel:'Lançar',
+    body:`
+      <div class="field">
+        <label for="nh-processo">Processo</label>
+        <select id="nh-processo" name="processo" required>${opcoes}</select>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label for="nh-data">Data</label>
+          <input id="nh-data" type="date" name="data" value="${iso(HOJE)}" required>
+        </div>
+        <div class="field">
+          <label for="nh-minutos">Minutos</label>
+          <input id="nh-minutos" type="number" name="minutos" min="5" step="5" value="60" required>
+        </div>
+      </div>
+      <div class="field">
+        <label for="nh-descricao">Descrição</label>
+        <input id="nh-descricao" name="descricao" placeholder="O que foi feito" required>
+      </div>
+      <div class="field">
+        <label for="nh-responsavel">Responsável</label>
+        <select id="nh-responsavel" name="responsavel">
+          <option>Dr. Renan</option>
+          <option>Dra. Ana</option>
+        </select>
+      </div>
+    `,
+    onSubmit(dados){
+      horas.push({
+        id:'h' + Date.now(),
+        processoId:dados.processo,
+        data:new Date(dados.data + 'T00:00:00'),
+        minutos:Number(dados.minutos) || 0,
+        descricao:dados.descricao,
+        responsavel:dados.responsavel
+      });
+      closeModal();
+      render();
+      toast('Horas lançadas');
+    }
+  });
+}
+
+/* ---------- gerar documento ---------- */
+function openGerarDocumento(processoId, modeloId){
+  const opcoesProcesso = processos.map(p => `<option value="${p.id}" ${p.id === processoId ? 'selected' : ''}>${p.numero} — ${esc(cliente(p.clienteId).nome)}</option>`).join('');
+  const opcoesModelo = modelos.map(m => `<option value="${m.id}" ${m.id === modeloId ? 'selected' : ''}>${esc(m.nome)}</option>`).join('');
+
+  openModal({
+    title:'Gerar documento',
+    submitLabel:'Gerar',
+    body:`
+      <div class="field">
+        <label for="gd-modelo">Modelo</label>
+        <select id="gd-modelo" name="modelo">${opcoesModelo}</select>
+      </div>
+      <div class="field">
+        <label for="gd-processo">Processo</label>
+        <select id="gd-processo" name="processo" required>${opcoesProcesso}</select>
+      </div>
+      <p class="note">O documento será preenchido com os dados do cliente e do processo, e anexado na aba Documentos.</p>
+    `,
+    onSubmit(dados){
+      const proc = processo(dados.processo);
+      const modelo = modelos.find(m => m.id === dados.modelo);
+      if(!proc || !modelo) return;
+      proc.docs.unshift({
+        nome:modelo.nome + ' — ' + cliente(proc.clienteId).nome + '.docx',
+        tipo:'Modelo',
+        data:HOJE,
+        tamanho:'38 KB'
+      });
+      closeModal();
+      render();
+      toast('Documento gerado e anexado ao processo');
+    }
+  });
+}
+
+/* ============================================================
+   Eventos
+   ============================================================ */
+document.addEventListener('click', e => {
+  const nav = e.target.closest('[data-view]');
+  if(nav){
+    setView(nav.dataset.view);
+    return;
+  }
+
+  const el = e.target.closest('[data-action]');
+  if(!el) return;
+
+  const acao = el.dataset.action;
+  const id = el.dataset.id || null;
+
+  if(acao === 'nav'){ setView(id); return; }
+  if(acao === 'close-modal'){ closeModal(); return; }
+  if(acao === 'toast'){ toast(el.dataset.msg || 'Ação simulada neste protótipo'); return; }
+  if(acao === 'open-process'){ openProcess(id); return; }
+
+  if(acao === 'conclude-prazo'){
+    const prazo = prazos.find(p => p.id === id);
+    if(prazo && !prazo.concluido){
+      prazo.concluido = true;
+      render();
+      toast('Prazo concluído');
+    }
+    return;
+  }
+
+  if(acao === 'pay-fatura'){
+    const fatura = faturas.find(f => f.id === id);
+    if(fatura && fatura.status !== 'paga'){
+      fatura.status = 'paga';
+      render();
+      toast('Fatura #' + fatura.numero + ' marcada como paga');
+    }
+    return;
+  }
+
+  if(acao === 'new-prazo'){ openNovoPrazo(id); return; }
+  if(acao === 'new-process'){ openNovoProcesso(); return; }
+  if(acao === 'new-client'){ openNovoCliente(); return; }
+  if(acao === 'new-time'){ openNovoHoras(id); return; }
+  if(acao === 'generate-doc'){ openGerarDocumento(id, el.dataset.modelo || null); return; }
+
+  if(acao === 'process-tab'){ state.processTab = id; render(); return; }
+  if(acao === 'doc-tab'){ state.docTab = id; render(); return; }
+  if(acao === 'fin-tab'){ state.finTab = id; render(); return; }
+
+  if(acao === 'week'){ state.weekOffset += Number(id); render(); return; }
+  if(acao === 'week-today'){ state.weekOffset = 0; render(); return; }
+
+  if(acao === 'filter-client'){
+    state.filtroCliente = id;
+    state.search = '';
+    searchInput.value = '';
+    setView('processos');
+    return;
+  }
+  if(acao === 'clear-client'){ state.filtroCliente = ''; render(); return; }
+  if(acao === 'clear-filters'){
+    state.filtroStatus = '';
+    state.filtroResp = '';
+    state.filtroCliente = '';
+    state.search = '';
+    searchInput.value = '';
+    render();
+    return;
+  }
+});
+
+content.addEventListener('change', e => {
+  const el = e.target.closest('[data-filter]');
+  if(!el) return;
+  state[el.dataset.filter] = el.value;
+  render();
+});
+
+searchInput.addEventListener('keydown', e => {
+  if(e.key === 'Enter'){
+    e.preventDefault();
+    state.search = searchInput.value.trim();
+    setView('processos');
+  }
+});
+
+searchInput.addEventListener('input', () => {
+  if(searchInput.value.trim() === '' && state.search !== ''){
+    state.search = '';
+    if(state.view === 'processos') render();
+  }
+});
+
+document.addEventListener('keydown', e => {
+  if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k'){
+    e.preventDefault();
+    searchInput.focus();
+    searchInput.select();
+  }
+  if(e.key === 'Escape') closeModal();
+});
+
+/* ---------- início ---------- */
+function aplicarHash(){
+  const h = decodeURIComponent(location.hash.replace(/^#/, ''));
+  if(h.indexOf('processo/') === 0){
+    const id = h.slice('processo/'.length);
+    if(processo(id)){
+      state.selectedProcess = id;
+      state.processTab = 'andamentos';
+      state.view = 'processo';
+      return;
+    }
+  }
+  if(['hoje','processos','prazos','clientes','documentos','financeiro'].indexOf(h) !== -1){
+    state.view = h;
+    state.selectedProcess = null;
+  }
+}
+
+window.addEventListener('hashchange', () => {
+  aplicarHash();
+  render();
+});
+
+aplicarHash();
+render();
+</script>
+</body>
+</html>
